@@ -1,0 +1,17 @@
+compile_commands.json
+htmctl
+htm.ko
+modules.order
+snc
+Module.symvers
+TODO.md
+.cache
+.clangd
+*.cmd
+*.mod
+*.mod.c
+*.ko
+*.o
+
+# Don't ignore the `htmctl` folder
+!htmctl/

