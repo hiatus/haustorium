@@ -1,13 +1,18 @@
 MODBIN := htm.ko
+MODTGT := $(MODBIN)
 MODSRC := src/htm
 MODINC := $(MODSRC)/include
+MODRES := $(MODSRC)/res
 
 CTLBIN := htmctl
+CTLTGT := $(CTLBIN)
 CTLSRC := src/htmctl
 CTLINC := $(CTLSRC)/include
+CTLRES := $(CTLSRC)/res
 
 RSHDIR := src/snc
-RSHBIN := $(RSHDIR)/snc
+RSHBIN := snc
+RSHTGT := $(RSHDIR)/snc
 RSHSRC := $(RSHDIR)/src
 RSHINC := $(RSHSRC)/include
 
@@ -17,16 +22,17 @@ KDIR ?= /lib/modules/$(shell uname -r)/build
 
 all: $(MODBIN) $(CTLBIN)
 
-$(MODBIN): $(RSHBIN) $(wildcard $(MODSRC)/*.c) $(wildcard $(MODINC)/*.h)
+$(MODTGT): $(RSHTGT) $(wildcard $(MODSRC)/*.c) $(wildcard $(MODINC)/*.h)
+	@cp $(RSHTGT) $(MODRES)/$(RSHBIN)
 	@make --no-print-directory -C $(KDIR) M=$(shell pwd)/$(MODSRC)
-	@cp $(MODSRC)/$(MODBIN) $(MODBIN)
-	@make --no-print-directory -C $(KDIR) M=$(shell pwd)/$(MODSRC)
+	@cp $(MODSRC)/$(MODBIN) $(MODTGT)
 
-$(CTLBIN): $(MODBIN) $(wildcard $(CTLSRC)/*.c) $(wildcard $(CTLINC)/*.h)
+$(CTLTGT): $(MODTGT) $(wildcard $(CTLSRC)/*.c) $(wildcard $(CTLINC)/*.h)
+	@cp $(MODTGT) $(CTLRES)/$(MODBIN)
 	@make --no-print-directory -C $(CTLSRC)
-	@cp $(CTLSRC)/$(CTLBIN) $(CTLBIN)
+	@cp $(CTLSRC)/$(CTLBIN) $(CTLTGT)
 
-$(RSHBIN): $(wildcard $(RSHSRC)/*.c) $(wildcard $(RSHINC)/*.h)
+$(RSHTGT): $(wildcard $(RSHSRC)/*.c) $(wildcard $(RSHINC)/*.h)
 	@make --no-print-directory -C $(RSHDIR)
 
 install: all
@@ -34,7 +40,7 @@ install: all
 
 clean:
 	@echo [rm] $(MODBIN)
-	@rm -f $(MODBIN) $(CTLBIN) || true
+	@rm -f $(MODTGT) $(CTLTGT) $(MODRES)/$(RSHBIN) $(CTLRES)/$(MODBIN) || true
 	@make --no-print-directory -C $(KDIR) M=$(shell pwd)/$(MODSRC) clean
 	@make --no-print-directory -C $(CTLSRC) clean
 	@make --no-print-directory -C $(RSHDIR) clean

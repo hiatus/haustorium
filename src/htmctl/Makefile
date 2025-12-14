@@ -1,4 +1,6 @@
 TARGET := htmctl
+MODBIN := htm.ko
+RESDIR := res
 OBJDIR := obj
 INCDIR := include
 OBJALL := main.o load.o rodata.o
@@ -19,7 +21,7 @@ load.o: load.c $(INCDIR)/load.h $(INCDIR)/config.h
 
 rodata.o: rodata.S
 	@echo [$(CC)] $@
-	@$(CC) $(CFLAGS) -DMODBIN=\"$(dir $@)../htm/htm.ko\" -c -o $@ $<
+	@$(CC) $(CFLAGS) -DMODBIN=\"$(RESDIR)/$(MODBIN)\" -c -o $@ $<
 
 clean:
 	@echo [rm] $(TARGET) $(OBJALL)
