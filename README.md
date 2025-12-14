@@ -23,15 +23,17 @@ My take on x86_64 LKM rootkits.
 Haustorium controls features and performs actions via a set of commands that can be received by one or more of its interfaces. The commands supported by each interface are described later in this document.
 
 - `disable-cdd`: disable character device interface;
+- `disable-debugfs`: disable exposing internal files via `debugfs`;
 - `disable-fs`: disable file system evasion (hiding paths containing `.haustorium`);
 - `disable-nf`: disable Netfilter interface (receiving commands via ICMP packets);
 - `enable-cdd`: enable character device interface (receiving commands via `/dev/htm`);
+- `enable-debugfs`: enable exposing internal files via debugfs;
 - `enable-fs`: enable file system evasion;
 - `enable-nf`: enable Netfilter interface;
 - `exec [command]`: execute `command` using the configured shell (`/usr/bin/bash` by default) in user space as the root user.
 - `hide-module`: hide module from user space tools;
 - `show-module`: expose module to user space tools;
-- `sudo [pid]?`: change the UID, EUID, GID and EGID of a process identified by `pid` to 0. If no `pid` is given, get it from the currently running task.;
+- `sudo [pid]?`: change the UID, EUID, GID and EGID of a process identified by `pid` to 0. If no `pid` is given, get it from the currently running task;
 
 ## Tested On
 
@@ -92,14 +94,16 @@ htmctl [action]
 General:
 	help	Show this banner
 	info	Display module information
-	load	Load the module
+	load	Load kernel object file
 	unload	Unload the module
 
 Module Management:
 	disable-cdd	Disable character device interface
+	disable-debugfs	Disable exposing internal files via debugfs
 	disable-fs	Disable file system evasion (hiding paths containing ".haustorium")
 	disable-nf	Disable Netfilter interface (receiving commands via ICMP packets)
 	enable-cdd	Enable character device interface (receiving commands via /dev/htm)
+	enable-debugfs	Enable exposing internal files via debugfs
 	enable-fs	Enable file system evasion
 	enable-nf	Enable Netfilter interface
 	hide-module	Hide module from user space tools
@@ -119,9 +123,11 @@ Haustorium's reverse shell is [snc](https://github.com/hiatus/snc). The `src/snc
 Haustorium hooks `sys_kill` to intercept signals sent to `HTM_PID` and perform various actions. The available actions on this interface are:
 
 - `disable-cdd`
+- `disable-debugfs`
 - `disable-fs`
 - `disable-nf`
 - `enable-cdd`
+- `enable-debugfs`
 - `enable-fs`
 - `enable-nf`
 - `hide-module`
@@ -135,9 +141,11 @@ Haustorium hooks `sys_kill` to intercept signals sent to `HTM_PID` and perform v
 Haustorium can expose a character device at `/dev/htm` to receive commands via writes to the device and perform actions. The available actions on this interface are:
 
 - `disable-cdd`
+- `disable-debugfs`
 - `disable-fs`
 - `disable-nf`
 - `enable-cdd`
+- `enable-debugfs`
 - `enable-fs`
 - `enable-nf`
 - `exec [command]`
@@ -154,6 +162,8 @@ Via this interface, some actions (such as `sudo`) can receive arguments.
 
 Haustorium can also receive its commands via the payload field in ICMP packets. The only limitation is the fact that Netfilter hooks run in `softirq` context, which makes performing non-atomic actions very dangerous. Because of this, less features are accepted via this interface:
 
+- `disable-debugfs`
+- `enable-debugfs`
 - `hide-module`
 - `show-module`
 - `exec [command]`
