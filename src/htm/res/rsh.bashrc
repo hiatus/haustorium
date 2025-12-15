@@ -3,15 +3,11 @@ shopt -s checkwinsize
 
 __prompt_command()
 {
-	local ret=\$?
+	local ret=$?
 
-	if [[ \$ret -eq 0 ]]; then
-		PS1="\[\e[91m\]"
-	else
-		PS1="\[\e[90m\]\${ret}\[\e[0m\]"
-	fi
+	PS1="\[\e[90m\][\[\e[0m\]htm\[\e[90m\]] "
+	PS1+="\[\e[91m\]\u@\h\[\e[0m\]:\[\e[90m\]\w\[\e[0m\]\\$ "
 
-	PS1+=" \u@\h\[\e[0m\]:\[\e[90m\]\w\[\e[0m\]\\$ "
 	PS2="${black}·${normal} "
 }
 
