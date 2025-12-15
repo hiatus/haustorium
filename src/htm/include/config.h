@@ -1,7 +1,7 @@
 #ifndef HTM_CONFIG_H
 #define HTM_CONFIG_H
 
-//#define HTM_DEBUG
+#define HTM_DEBUG
 
 #define HTM_MAX_STRING 1024
 #define HTM_MAX_FILENAME 32

