@@ -3,6 +3,7 @@
 #include <linux/device.h>
 #include <linux/fs.h>
 #include <linux/uaccess.h>
+#include <linux/version.h>
 
 #include "command.h"
 #include "config.h"
@@ -24,7 +25,11 @@ static struct class *_cdev_class = NULL;
 
 static struct file_operations cdev_fops;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
+static notrace int _cdev_uevent(struct device *dev, struct kobj_uevent_env *env)
+#else
 static notrace int _cdev_uevent(const struct device *dev, struct kobj_uevent_env *env)
+#endif
 {
 	add_uevent_var(env, "DEVMODE=%#o", 0666);
 	return 0;
@@ -148,7 +153,12 @@ notrace int htm_cdd_create(void)
 
 	_cdev_major = MAJOR(dev);
 
+	#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 4, 0)
+	_cdev_class = class_create(THIS_MODULE, HTM_CDD_NAME);
+	#else
 	_cdev_class = class_create(HTM_CDD_NAME);
+	#endif
+
 	_cdev_class->dev_uevent = _cdev_uevent;
 
 	cdev_init(&_cdev, &cdev_fops);

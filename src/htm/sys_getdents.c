@@ -1,3 +1,5 @@
+#include <linux/slab.h>
+
 #include "config.h"
 #include "hook.h"
 #include "htm.h"
