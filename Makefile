@@ -35,6 +35,16 @@ $(CTLTGT): $(MODTGT) $(wildcard $(CTLSRC)/*.c) $(wildcard $(CTLINC)/*.h)
 $(RSHTGT): $(wildcard $(RSHSRC)/*.c) $(wildcard $(RSHINC)/*.h)
 	@make --no-print-directory -C $(RSHDIR)
 
+$(CTLRES):
+	@mkdir $(CTLRES)
+
+$(MODRES):
+	@mkdir $(MODRES)
+
+$(CTLTGT): | $(CTLRES)
+
+$(MODTGT): | $(MODRES)
+
 install: all
 	@bash $(SCRDIR)/htm-persist.sh -m systemd $(MODBIN)
 
