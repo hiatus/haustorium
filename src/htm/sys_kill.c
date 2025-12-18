@@ -93,4 +93,4 @@ call_original:
 	#endif
 }
 
-struct htm_ftrace_hook hook_sys_kill = HTM_HOOK("__x64_sys_kill", _sys_kill_hook, &_sys_kill);
+struct htm_ftrace_hook hook_sys_kill = HTM_HOOK(HTM_SYM_KILL, _sys_kill_hook, &_sys_kill);

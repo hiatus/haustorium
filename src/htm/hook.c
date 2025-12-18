@@ -1,12 +1,14 @@
+#include <linux/ftrace.h>
+#include <linux/module.h>
 #include <linux/types.h>
 
 #include "config.h"
 #include "hook.h"
 #include "htm.h"
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,7,0)
-#define KPROBE_LOOKUP 1
+#if HTM_KPROBE_LOOKUP
 #include <linux/kprobes.h>
+
 extern struct kprobe kp;
 
 struct kprobe kp = {
@@ -14,10 +16,8 @@ struct kprobe kp = {
 };
 #endif
 
-#ifdef KPROBE_LOOKUP
 typedef unsigned long (*_kallsyms_lookup_name_t)(const char *name);
-_kallsyms_lookup_name_t _kallsyms_lookup_name_fn = NULL;
-#endif
+static _kallsyms_lookup_name_t _kallsyms_lookup_name = NULL;
 
 static notrace int _resolve_hook_address(struct htm_ftrace_hook *hook);
 static notrace void _ftrace_thunk(unsigned long ip, unsigned long parent_ip,
@@ -25,7 +25,7 @@ static notrace void _ftrace_thunk(unsigned long ip, unsigned long parent_ip,
 
 static notrace int _resolve_hook_address(struct htm_ftrace_hook *hook)
 {
-	hook->address = (unsigned long)htm_resolve_sym(hook->name);
+	hook->address = htm_resolve_sym(hook->name);
 
 	if (! hook->address)
 		return -ENOENT;
@@ -53,19 +53,32 @@ static notrace void _ftrace_thunk(unsigned long ip, unsigned long parent_ip,
 	#endif
 }
 
-notrace unsigned long *htm_resolve_sym(const char *symname)
+notrace unsigned long htm_resolve_sym(const char *symname)
 {
-	if (! _kallsyms_lookup_name_fn) {
-		#ifdef KPROBE_LOOKUP
+	unsigned long address;
+
+	if (! _kallsyms_lookup_name) {
+		#if HTM_KPROBE_LOOKUP
 		register_kprobe(&kp);
-		_kallsyms_lookup_name_fn = (_kallsyms_lookup_name_t)kp.addr;
+		_kallsyms_lookup_name = (_kallsyms_lookup_name_t)kp.addr;
 		unregister_kprobe(&kp);
 		#else
-		_kallsyms_lookup_name_fn = &kallsyms_lookup_name;
+		_kallsyms_lookup_name = &kallsyms_lookup_name;
+		#endif
+
+		#ifdef HTM_LOG
+		htm_pr_debug("address of kallsyms_lookup_name: 0x%p", _kallsyms_lookup_name);
 		#endif
 	}
 
-	return (unsigned long *)_kallsyms_lookup_name_fn(symname);
+	address = _kallsyms_lookup_name(symname);
+
+	#ifdef HTM_LOG
+	if (address)
+		htm_pr_debug("address of %s: 0x%016zx", symname, sym);
+	#endif
+
+	return address;
 }
 
 notrace int htm_hook_install(struct htm_ftrace_hook *hook)
@@ -82,8 +95,8 @@ notrace int htm_hook_install(struct htm_ftrace_hook *hook)
 
 	if ((ret = _resolve_hook_address(hook))) {
 		#ifdef HTM_DEBUG
-		htm_pr_err("cannot hook symbol %s - failed to resolve symbol", hook->name);
-			#endif
+		htm_pr_err("failed to resolve symbol: %s", hook->name);
+		#endif
 
 		return ret;
 	}

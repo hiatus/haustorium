@@ -44,6 +44,7 @@ Haustorium controls features and performs actions via a set of commands that can
 | Kali GNU/Linux   | 6.16.8              |
 | Debian GNU/Linux | 6.12.57             |
 | Ubuntu 22.04     | 5.15.0              |
+| Ubuntu 16.04     | 4.15.0              |
 
 ## Installation
 
