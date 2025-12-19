@@ -8,7 +8,7 @@ My take on x86_64 LKM rootkits.
 - Hide files and directories;
 - Backdoor for privilege escalation;
 - Backdoor for bash-compatible command execution;
-- Encrypted, full TTY reverse shell embedded into the LKM itself and executed in user space via `debugfs`;
+- Encrypted, full TTY reverse shell embedded into the LKM itself;
 - Enable and disable features at runtime;
 - User space interface via signals;
 - User space interface via character device driver (`/dev/htm`);
@@ -121,8 +121,6 @@ Module Management:
 ## Reverse Shell
 
 Haustorium's reverse shell is [snc](https://github.com/hiatus/snc). The `src/snc` folder is only a git submodule of the project. After compilation, `snc`'s ELF is included the `.rodata` section of the kernel module. When the `rsh` command is received, this binary blob is then exposed to user space via `debugfs`, copied to `/dev/shm` and executed via `call_usermodehelper` with the configured parameters; the `debugfs` file and directory are then removed.
-
-**Note**: currently, due to a race condition with `UMH_NO_WAIT` when executing commands in atomic contexts (such as from the Netfilter module), the created `debugfs` file exposing the reverse shell binary is only removed on module unload. This means that, from the first time `rsh` is executed, **the file becomes visible to user space**, even though file system evasion mitigates this issue (the file and the directory always contain the string that identifies files that should be hidden).
 
 ## Signal Interface
 
